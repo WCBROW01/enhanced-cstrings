@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <regex.h>
 
 #include "estring.h"
 
@@ -10,20 +11,47 @@
 #define max(a, b) (a) > (b) ? (a) : (b)
 
 char *String_to_cstr(String str) {
-	return strndup(str.data, str.len);
+	if (str.data == NULL || str.data[str.len] != '\0') return NULL;
+	else return str.data;
+}
+
+long String_to_long(String str, int base) {
+	return strtol(String_to_cstr(str), NULL, base);
+}
+
+long long String_to_llong(String str, int base) {
+	return strtoll(String_to_cstr(str), NULL, base);
+}
+
+unsigned long String_to_ulong(String str, int base) {
+	return strtoul(String_to_cstr(str), NULL, base);
+}
+
+unsigned long long String_to_ullong(String str, int base) {
+	return strtoull(String_to_cstr(str), NULL, base);
+}
+
+double String_to_double(String str) {
+	return strtod(String_to_cstr(str), NULL);
+}
+
+float String_to_float(String str) {
+	return strtof(String_to_cstr(str), NULL);
+}
+
+long double String_to_ldouble(String str) {
+	return strtold(String_to_cstr(str), NULL);
 }
 
 String String_copy(String str) {
-	String ret = {
-		.data = memcpy(malloc(str.len), str.data, str.len),
+	return (String) {
+		.data = strndup(str.data, str.len),
 		.len = str.len
 	};
-
-	return ret;
 }
 
 String String_concat(String s1, String s2) {
-	char *new_string = malloc(s1.len + s2.len);
+	char *new_string = malloc(s1.len + s2.len + 1);
 	String ret = {
 		.data = new_string,
 		.len = s1.len + s2.len
@@ -31,12 +59,14 @@ String String_concat(String s1, String s2) {
 
 	new_string = mempcpy(new_string, s1.data, s1.len);
 	memcpy(new_string, s2.data, s2.len);
+	new_string[s1.len + s2.len] = '\0';
 
 	return ret;
 }
 
 String String_repeat(String str, size_t count) {
-	char *new_string = malloc(str.len * count);
+	if ((++count) < 1) return (String) {0};
+	char *new_string = malloc(str.len * count + 1);
 	String ret = {
 		.data = new_string,
 		.len = str.len * count
@@ -46,6 +76,7 @@ String String_repeat(String str, size_t count) {
 		new_string = mempcpy(new_string, str.data, str.len);
 		memcpy(new_string, str.data, str.len);
 	}
+	new_string[str.len * count] = '\0';
 
 	return ret;
 }
@@ -155,14 +186,6 @@ int String_contains_chr(const String str, const char c) {
 	return StringView_contains_chr(str, c);
 }
 
-int StringView_contains_rchr(const StringView str, const char c) {
-	return memrchr(str.data, c, str.len) != NULL;
-}
-
-int String_contains_rchr(const String str, const char c) {
-	return StringView_contains_rchr(str, c);
-}
-
 int StringView_contains_str(const StringView str, const StringView substr) {
 	return memmem(str.data, str.len, substr.data, substr.len) != NULL;
 }
@@ -204,19 +227,11 @@ int String_indexof_str(const String str, const String substr) {
 StringView StringView_search_chr(StringView str, const char c) {
 	char *result = memchr(str.data, c, str.len);
 
-	if (result == NULL) {
-		StringView ret = {
-			.data = NULL,
-			.len = 0
-		};
-		return ret;
-	} else {
-		StringView ret = {
-			.data = result,
-			.len = str.len - (result - str.data)
-		};
-		return ret;
-	}
+	if (result == NULL) return (StringView) {0};
+	else return (StringView) {
+		.data = result,
+		.len = str.len - (result - str.data)
+	};
 }
 
 String String_search_chr(String str, const char c) {
@@ -226,19 +241,11 @@ String String_search_chr(String str, const char c) {
 StringView StringView_search_rchr(StringView str, const char c) {
 	char *result = memrchr(str.data, c, str.len);
 
-	if (result == NULL) {
-		StringView ret = {
-			.data = NULL,
-			.len = 0
-		};
-		return ret;
-	} else {
-		StringView ret = {
-			.data = result,
-			.len = str.len - (result - str.data)
-		};
-		return ret;
-	}
+	if (result == NULL) return (StringView) {0};
+	else return (StringView) {
+		.data = result,
+		.len = str.len - (result - str.data)
+	};
 }
 
 String String_search_rchr(String str, const char c) {
@@ -248,19 +255,11 @@ String String_search_rchr(String str, const char c) {
 StringView StringView_search_str(StringView str, const StringView substr) {
 	char *result = memmem(str.data, str.len, substr.data, substr.len);
 
-	if (result == NULL) {
-		StringView ret = {
-			.data = NULL,
-			.len = 0
-		};
-		return ret;
-	} else {
-		StringView ret = {
-			.data = result,
-			.len = str.len - (result - str.data)
-		};
-		return ret;
-	}
+	if (result == NULL) return (StringView) {0};
+	else return (StringView) {
+		.data = result,
+		.len = str.len - (result - str.data)
+	};
 }
 
 String String_search_str(String str, String substr) {
