@@ -31,29 +31,40 @@ typedef String StringView;
  * be unpredictable. */
 char *String_to_cstr(String str);
 
-// Converts a string to a long integer.
-long String_to_long(String str, int base);
-
-// Converts a string to a long long integer.
-long long String_to_llong(String str, int base);
-
-// Converts a string to an unsigned long integer.
-unsigned long String_to_ulong(String str, int base);
-
-// Converts a string to an unsigned long long integer.
-unsigned long long String_to_ullong(String str, int base);
-
-// Converts a string to a double-precision floating point number.
-double String_to_double(String str);
-
-// Converts a string to a single-precision floating point number.
-float String_to_float(String str);
-
-// Converts a string to a long double-precision floating point number.
-long double String_to_ldouble(String str);
+/* Frees the data associated with a String.
+ * Using this on an object initialized as a StringView is undefined behavior. */
+void String_free(String str);
 
 // Copies the data from str into a new String.
 String String_copy(String str);
+
+// Converts a string to a long integer.
+long String_to_long(String str, int base);
+long StringView_to_long(StringView str, int base);
+
+// Converts a string to a long long integer.
+long long String_to_llong(String str, int base);
+long long StringView_to_llong(StringView str, int base);
+
+// Converts a string to an unsigned long integer.
+unsigned long String_to_ulong(String str, int base);
+unsigned long StringView_to_ulong(StringView str, int base);
+
+// Converts a string to an unsigned long long integer.
+unsigned long long String_to_ullong(String str, int base);
+unsigned long long StringView_to_ullong(StringView str, int base);
+
+// Converts a string to a double-precision floating point number.
+double String_to_double(String str);
+double StringView_to_double(StringView str);
+
+// Converts a string to a single-precision floating point number.
+float String_to_float(String str);
+float StringView_to_float(StringView str);
+
+// Converts a string to a long double-precision floating point number.
+long double String_to_ldouble(String str);
+long double StringView_to_ldouble(StringView str);
 
 // Concatenates two strings together.
 String String_concat(String s1, String s2);

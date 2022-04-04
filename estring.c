@@ -15,32 +15,25 @@ char *String_to_cstr(String str) {
 	else return str.data;
 }
 
-long String_to_long(String str, int base) {
-	return strtol(String_to_cstr(str), NULL, base);
+// INTERNAL FUNCTION (for now) to make allocating Strings slightly easier
+static String String_alloc(size_t size) {
+	return (String) {
+		.data = calloc(size + 1, sizeof(char)),
+		.len = size + 1
+	};
 }
 
-long long String_to_llong(String str, int base) {
-	return strtoll(String_to_cstr(str), NULL, base);
+// INTERNAL MACRO, COULD RUIN THE STACK IF NOT USED CAREFULLY
+#define String_alloca(size) (String) {.data = alloca(size + 1), .len = size}
+
+void String_free(String str) {
+	free(str.data);
 }
 
-unsigned long String_to_ulong(String str, int base) {
-	return strtoul(String_to_cstr(str), NULL, base);
-}
-
-unsigned long long String_to_ullong(String str, int base) {
-	return strtoull(String_to_cstr(str), NULL, base);
-}
-
-double String_to_double(String str) {
-	return strtod(String_to_cstr(str), NULL);
-}
-
-float String_to_float(String str) {
-	return strtof(String_to_cstr(str), NULL);
-}
-
-long double String_to_ldouble(String str) {
-	return strtold(String_to_cstr(str), NULL);
+// INTERNAL FUNCTION
+static String String_copy_prealloc(String dest, String src) {
+	strncpy(dest.data, src.data, dest.len);
+	return dest;
 }
 
 String String_copy(String str) {
@@ -50,33 +43,103 @@ String String_copy(String str) {
 	};
 }
 
-String String_concat(String s1, String s2) {
-	char *new_string = malloc(s1.len + s2.len + 1);
-	String ret = {
-		.data = new_string,
-		.len = s1.len + s2.len
-	};
+// INTERNAL MACRO, COULD RUIN THE STACK IF NOT USED CAREFULLY
+#define String_copya(str) (String) {.data = strndupa(str.data, str.len), .len = str.len}
 
-	new_string = mempcpy(new_string, s1.data, s1.len);
-	memcpy(new_string, s2.data, s2.len);
-	new_string[s1.len + s2.len] = '\0';
+long String_to_long(String str, int base) {
+	return strtol(String_to_cstr(str), NULL, base);
+}
+
+long StringView_to_long(StringView str, int base) {
+	String temp = String_copy(str);
+	long res = String_to_long(temp, base);
+	String_free(temp);
+	return res;
+}
+
+long long String_to_llong(String str, int base) {
+	return strtoll(String_to_cstr(str), NULL, base);
+}
+
+long long StringView_to_llong(StringView str, int base) {
+	String temp = String_copy(str);
+	long long res = String_to_llong(temp, base);
+	String_free(temp);
+	return res;
+}
+
+unsigned long String_to_ulong(String str, int base) {
+	return strtoul(String_to_cstr(str), NULL, base);
+}
+
+unsigned long StringView_to_ulong(StringView str, int base) {
+	String temp = String_copy(str);
+	unsigned long res = String_to_ulong(temp, base);
+	String_free(temp);
+	return res;
+}
+
+unsigned long long String_to_ullong(String str, int base) {
+	return strtoull(String_to_cstr(str), NULL, base);
+}
+
+unsigned long long StringView_to_ullong(StringView str, int base) {
+	String temp = String_copy(str);
+	unsigned long long res = String_to_ullong(temp, base);
+	String_free(temp);
+	return res;
+}
+
+double String_to_double(String str) {
+	return strtod(String_to_cstr(str), NULL);
+}
+
+double StringView_to_double(StringView str) {
+	String temp = String_copy(str);
+	double res = String_to_double(temp);
+	String_free(temp);
+	return res;
+}
+
+float String_to_float(String str) {
+	return strtof(String_to_cstr(str), NULL);
+}
+
+float StringView_to_float(StringView str) {
+	String temp = String_copy(str);
+	float res = String_to_float(temp);
+	String_free(temp);
+	return res;
+}
+
+long double String_to_ldouble(String str) {
+	return strtold(String_to_cstr(str), NULL);
+}
+
+long double StringView_to_ldouble(StringView str) {
+	String temp = String_copy(str);
+	long double res = String_to_ldouble(temp);
+	String_free(temp);
+	return res;
+}
+
+String String_concat(String s1, String s2) {
+	String ret = String_alloc(s1.len + s2.len);
+	char *tmp = mempcpy(ret.data, s1.data, s1.len);
+	memcpy(tmp, s2.data, s2.len);
 
 	return ret;
 }
 
 String String_repeat(String str, size_t count) {
-	if ((++count) < 1) return (String) {0};
-	char *new_string = malloc(str.len * count + 1);
-	String ret = {
-		.data = new_string,
-		.len = str.len * count
-	};
+	if (++count < 1) return (String) {0};
+	String ret = String_alloc(str.len * count);
+	char *new_string = ret.data;
 
 	for (size_t i = 0; i < count; ++i) {
 		new_string = mempcpy(new_string, str.data, str.len);
 		memcpy(new_string, str.data, str.len);
 	}
-	new_string[str.len * count] = '\0';
 
 	return ret;
 }
