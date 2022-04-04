@@ -5,6 +5,10 @@
 #include <string.h>
 #include <regex.h>
 
+#ifdef ESTRING_USE_GC
+#include <gc.h>
+#endif
+
 #include "estring.h"
 
 #define min(a, b) (a) < (b) ? (a) : (b)
@@ -17,17 +21,22 @@ char *String_to_cstr(String str) {
 
 // INTERNAL FUNCTION (for now) to make allocating Strings slightly easier
 static String String_alloc(size_t size) {
+#ifdef ESTRING_USE_GC
+	char *buf = GC_MALLOC(size + 1);
+#else
+	char *buf = malloc(size + 1);
+#endif
+	memset(buf, 0, size + 1);
 	return (String) {
-		.data = calloc(size + 1, sizeof(char)),
+		.data = buf,
 		.len = size + 1
 	};
 }
 
-// INTERNAL MACRO, COULD RUIN THE STACK IF NOT USED CAREFULLY
-#define String_alloca(size) (String) {.data = alloca(size + 1), .len = size}
-
 void String_free(String str) {
+#ifndef ESTRING_USE_GC
 	free(str.data);
+#endif
 }
 
 // INTERNAL FUNCTION
@@ -37,14 +46,9 @@ static String String_copy_prealloc(String dest, String src) {
 }
 
 String String_copy(String str) {
-	return (String) {
-		.data = strndup(str.data, str.len),
-		.len = str.len
-	};
+	String ret = String_alloc(str.len);
+	return String_copy_prealloc(ret, str);
 }
-
-// INTERNAL MACRO, COULD RUIN THE STACK IF NOT USED CAREFULLY
-#define String_copya(str) (String) {.data = strndupa(str.data, str.len), .len = str.len}
 
 long String_to_long(String str, int base) {
 	return strtol(String_to_cstr(str), NULL, base);
