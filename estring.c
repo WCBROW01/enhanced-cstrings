@@ -123,6 +123,22 @@ long double StringView_to_ldouble(StringView str) {
 	return res;
 }
 
+int String_matches(String str, const char *regex) {
+	regex_t preg;
+	int compres = regcomp(&preg, regex, REG_EXTENDED | REG_NOSUB);
+	if (compres) return compres;
+	int execres = regexec(&preg, String_to_cstr(str), 0, NULL, 0);
+	regfree(&preg);
+	return execres;
+}
+
+int StringView_matches(StringView str, const char *regex) {
+	String temp = String_copy(str);
+	int res = String_matches(temp, regex);
+	String_free(temp);
+	return res;
+}
+
 String String_concat(String s1, String s2) {
 	String ret = String_alloc(s1.len + s2.len);
 	char *tmp = mempcpy(ret.data, s1.data, s1.len);

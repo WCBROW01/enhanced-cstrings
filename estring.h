@@ -66,6 +66,11 @@ float StringView_to_float(StringView str);
 long double String_to_ldouble(String str);
 long double StringView_to_ldouble(StringView str);
 
+/* Checks whether a string matches a regular expression.
+ * See man regex(3) for possible return values. */
+int String_matches(String str, const char *regex);
+int StringView_matches(StringView str, const char *regex);
+
 // Concatenates two strings together.
 String String_concat(String s1, String s2);
 
