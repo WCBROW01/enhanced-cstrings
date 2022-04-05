@@ -27,7 +27,7 @@ static String String_alloc(size_t size) {
 	memset(buf, 0, size + 1);
 	return (String) {
 		.data = buf,
-		.len = size + 1
+		.len = size
 	};
 }
 
@@ -297,6 +297,15 @@ size_t StringView_cspan(const StringView str, const char *reject) {
 
 size_t String_cspan(const String str, const char *accept) {
 	return StringView_cspan(str, accept);
+}
+
+StringView StringView_tokenize(StringView *str, const char *delim) {
+	String ret = *str;
+	ret.len = StringView_cspan(*str, delim);
+	printf("%d\n", ret.len);
+	str->data += ret.len + 1;
+	str->len -= ret.len + 1;
+	return ret;
 }
 
 

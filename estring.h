@@ -138,6 +138,12 @@ size_t String_span(const String str, const char *accept);
 size_t StringView_cspan(const StringView str, const char *reject);
 size_t String_cspan(const String str, const char *accept);
 
+/* Breaks a string into tokens, using delimiters defined by the string delim.
+ * The generated token will be returned, and the provided string will be
+ * modified to become the substring beginning after the point of the returned token.
+ * IF YOU WOULD LIKE TO KEEP THE ORIGINAL STRING INTACT, MAKE A COPY FIRST! */
+StringView StringView_tokenize(StringView *str, const char *delim);
+
 
 // COMPARISON FUNCTIONS
 
