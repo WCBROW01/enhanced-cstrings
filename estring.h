@@ -6,7 +6,10 @@
 		StringView: String_copy \
 	)(str)
 
-#define StringView(str) StringView_from_cstr(str)
+#define StringView(str) _Generic((str), \
+		char*: StringView_from_cstr, \
+		String: \
+	)(str)
 
 typedef struct String {
 	char *data;
@@ -24,6 +27,16 @@ typedef struct String {
  * return String_copy(StringView_method(params)); */
 typedef String StringView;
 
+/* Frees the data associated with a String.
+ * Using this on an object initialized as a StringView is undefined behavior. */
+void String_free(String str);
+
+// Copies the data from str into a new String.
+String String_copy(String str);
+
+
+// NULL-TERMINATED STRING FUNCTIONS
+
 /* Returns a pointer to the internal data of a String. Safer than just grabbing
  * str.data. If a mutated StringView that is no longer properly null-terminated
  * is passed in, a null pointer will be returned. Using this with a StringView
@@ -31,12 +44,12 @@ typedef String StringView;
  * be unpredictable. */
 char *String_to_cstr(String str);
 
-/* Frees the data associated with a String.
- * Using this on an object initialized as a StringView is undefined behavior. */
-void String_free(String str);
+// Creates a new String object from a null-terminated string.
+StringView StringView_from_cstr(char *str);
+String String_from_cstr(char *str);
 
-// Copies the data from str into a new String.
-String String_copy(String str);
+
+// NUMERIC CASTS
 
 // Converts a string to a long integer.
 long String_to_long(String str, int base);
@@ -66,10 +79,8 @@ float StringView_to_float(StringView str);
 long double String_to_ldouble(String str);
 long double StringView_to_ldouble(StringView str);
 
-/* Checks whether a string matches a regular expression.
- * See man regex(3) for possible return values. */
-int String_matches(String str, const char *regex);
-int StringView_matches(StringView str, const char *regex);
+
+// CONCATENATION FUNCTIONS
 
 // Concatenates two strings together.
 String String_concat(String s1, String s2);
@@ -77,6 +88,9 @@ String String_concat(String s1, String s2);
 /* Returns a string which is equivalent to concatenating the same string together
  * count times. */
 String String_repeat(String str, size_t count);
+
+
+// FORMATTING FUNCTIONS
 
 // Returns a string with all uppercase characters.
 String String_toupper(String str);
@@ -87,13 +101,45 @@ String String_tolower(String str);
 // Replaces all characters matching old with new.
 String String_replace(String str, const char old, const char new);
 
-// Creates a new String object from a null-terminated string.
-StringView StringView_from_cstr(char *str);
-String String_from_cstr(char *str);
+// Strips all leading whitespace from a string.
+StringView StringView_strip_leading(StringView str);
+String String_strip_leading(String str);
+
+// Strips all trailing whitespace from a string.
+StringView StringView_strip_trailing(StringView str);
+String String_strip_trailing(String str);
+
+// Strips all leading and trailing whitespace from a string.
+StringView StringView_strip(StringView str);
+String String_strip(String str);
+
+
+// SUBSTRING FUNCTIONS
 
 // Returns a new String only consisting of characters between begin and end.
 StringView StringView_substring(StringView str, ssize_t begin, ssize_t end);
 String String_substring(StringView str, ssize_t begin, ssize_t end);
+
+// Checks if a string begins with the sequence of characters in a substring.
+int StringView_startswith(StringView str, const StringView substr);
+int String_startswith(String str, const String substr);
+
+// Checks if a string ends with the sequence of characters in a substring.
+int StringView_endswith(StringView str, const StringView substr);
+int String_endswith(String str, const String substr);
+
+/* Finds the length of the initial segment of str which consists entirely
+ * of characters in accept. */
+size_t StringView_span(const StringView str, const char *accept);
+size_t String_span(const String str, const char *accept);
+
+/* Finds the length of the initial segment of str which consists entirely
+ * of characters not in reject. */
+size_t StringView_cspan(const StringView str, const char *reject);
+size_t String_cspan(const String str, const char *accept);
+
+
+// COMPARISON FUNCTIONS
 
 // Compares the values of two strings.
 int StringView_compare(StringView s1, StringView s2);
@@ -102,6 +148,14 @@ int String_compare(String s1, String s2);
 // Same as String_compare, but ignoring case.
 int StringView_compare_nocase(StringView s1, StringView s2);
 int String_compare_nocase(String s1, String s2);
+
+/* Checks whether a string matches a regular expression.
+ * See man regex(3) for possible return values. */
+int String_matches(String str, const char *regex);
+int StringView_matches(StringView str, const char *regex);
+
+
+// SEARCH FUNCTIONS
 
 // Checks whether a string contains a character or not.
 int StringView_contains_chr(const StringView str, const char c);
@@ -140,25 +194,5 @@ String String_search_rchr(String str, const char c);
  * or a null string if it is not found. */
 StringView StringView_search_str(StringView str, const StringView substr);
 String String_search_str(String str, String substr);
-
-// Checks if a string begins with the sequence of characters in a substring.
-int StringView_startswith(StringView str, const StringView substr);
-int String_startswith(String str, const String substr);
-
-// Checks if a string ends with the sequence of characters in a substring.
-int StringView_endswith(StringView str, const StringView substr);
-int String_endswith(String str, const String substr);
-
-// Strips all leading whitespace from a string.
-StringView StringView_strip_leading(StringView str);
-String String_strip_leading(String str);
-
-// Strips all trailing whitespace from a string.
-StringView StringView_strip_trailing(StringView str);
-String String_strip_trailing(String str);
-
-// Strips all leading and trailing whitespace from a string.
-StringView StringView_strip(StringView str);
-String String_strip(String str);
 
 #endif

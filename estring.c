@@ -14,10 +14,8 @@
 #define min(a, b) (a) < (b) ? (a) : (b)
 #define max(a, b) (a) > (b) ? (a) : (b)
 
-char *String_to_cstr(String str) {
-	if (str.data == NULL || str.data[str.len] != '\0') return NULL;
-	else return str.data;
-}
+
+// MEMORY MANAGEMENT FUNCTIONS
 
 // INTERNAL FUNCTION (for now) to make allocating Strings slightly easier
 static String String_alloc(size_t size) {
@@ -49,6 +47,30 @@ String String_copy(String str) {
 	String ret = String_alloc(str.len);
 	return String_copy_prealloc(ret, str);
 }
+
+
+// NULL-TERMINATED STRING FUNCTIONS
+
+char *String_to_cstr(String str) {
+	if (str.data == NULL || str.data[str.len] != '\0') return NULL;
+	else return str.data;
+}
+
+StringView StringView_from_cstr(char *str) {
+	StringView ret = {
+		.data = str,
+		.len = strlen(str)
+	};
+
+	return ret;
+}
+
+String String_from_cstr(char *str) {
+	return String_copy(StringView_from_cstr(str));
+}
+
+
+// NUMERIC CASTS
 
 long String_to_long(String str, int base) {
 	return strtol(String_to_cstr(str), NULL, base);
@@ -127,21 +149,8 @@ long double StringView_to_ldouble(StringView str) {
 	return res;
 }
 
-int String_matches(String str, const char *regex) {
-	regex_t preg;
-	int compres = regcomp(&preg, regex, REG_EXTENDED | REG_NOSUB);
-	if (compres) return compres;
-	int execres = regexec(&preg, String_to_cstr(str), 0, NULL, 0);
-	regfree(&preg);
-	return execres;
-}
 
-int StringView_matches(StringView str, const char *regex) {
-	String temp = String_copy(str);
-	int res = String_matches(temp, regex);
-	String_free(temp);
-	return res;
-}
+// CONCATENATION FUNCTIONS
 
 String String_concat(String s1, String s2) {
 	String ret = String_alloc(s1.len + s2.len);
@@ -164,6 +173,9 @@ String String_repeat(String str, size_t count) {
 	return ret;
 }
 
+
+// FORMATTING FUNCTIONS
+
 String String_toupper(String str) {
 	String ret = String_copy(str);
 	for (size_t i = 0; i < ret.len; ++i) ret.data[i] = toupper(ret.data[i]);
@@ -182,18 +194,39 @@ String String_replace(String str, const char old, const char new) {
 	return ret;
 }
 
-StringView StringView_from_cstr(char *str) {
-	StringView ret = {
-		.data = str,
-		.len = strlen(str)
-	};
+StringView StringView_strip_leading(StringView str) {
+	while (isblank(*str.data)) {
+		++str.data;
+		--str.len;
+	}
 
-	return ret;
+	return str;
 }
 
-String String_from_cstr(char *str) {
-	return String_copy(StringView_from_cstr(str));
+String String_strip_leading(String str) {
+	return String_copy(StringView_strip_leading(str));
 }
+
+StringView StringView_strip_trailing(StringView str) {
+	char *s = str.data + str.len - 1;
+	while (isblank(*s--)) --str.len;
+	return str;
+}
+
+String String_strip_trailing(String str) {
+	return String_copy(StringView_strip_trailing(str));
+}
+
+StringView StringView_strip(StringView str) {
+	return StringView_strip_trailing(StringView_strip_leading(str));
+}
+
+String String_strip(String str) {
+	return String_copy(StringView_strip(str));
+}
+
+
+// SUBSTRING FUNCTIONS
 
 StringView StringView_substring(StringView str, ssize_t begin, ssize_t end) {
 	if (begin < 0) begin = str.len + begin;
@@ -207,27 +240,78 @@ String String_substring(StringView str, ssize_t begin, ssize_t end) {
 	return String_copy(StringView_substring(str, begin, end));
 }
 
-int StringView_compare(StringView s1, StringView s2) {
-	ssize_t len_diff = s1.len - s2.len;
-	int result = strncmp(s1.data, s2.data, min(s1.len, s2.len));
+int StringView_startswith(StringView str, const StringView substr) {
+	if (substr.len > str.len) return 0;
+	str.len = substr.len;
+	return StringView_compare(str, substr);
+}
 
-	if (len_diff > 0) {
-		s1.data += s2.len;
-		s1.len -= s2.len;
-		while (s1.len > 0) {
-			result += *s1.data++;
-			--s1.len;
-		}
-	} else if (len_diff < 0) {
-		s2.data += s1.len;
-		s2.len -= s1.len;
-		while (s2.len > 0) {
-			result -= *s2.data++;
-			--s2.len;
-		}
+int String_startswith(String str, const String substr) {
+	return StringView_startswith(str, substr);
+}
+
+int StringView_endswith(StringView str, const StringView substr) {
+	if (substr.len > str.len) return 0;
+	str.data += str.len - substr.len;
+	str.len = substr.len;
+	return StringView_compare(str, substr);
+}
+
+int String_endswith(String str, const String substr) {
+	return StringView_endswith(str, substr);
+}
+
+size_t StringView_span(const StringView str, const char *accept) {
+	unsigned char table[256] = {0};
+	unsigned char tmp;
+	do {
+		table[tmp = *accept++] = 1;
+	} while (tmp != '\0');
+
+	size_t res;
+	for (res = 0; res < str.len; ++res) {
+		if (!table[str.data[res]]) break;
 	}
 
-	return result;
+	return res;
+}
+
+size_t String_span(const String str, const char *accept) {
+	return StringView_span(str, accept);
+}
+
+size_t StringView_cspan(const StringView str, const char *reject) {
+	unsigned char table[256] = {0};
+	unsigned char tmp;
+	do {
+		table[tmp = *reject++] = 1;
+	} while (tmp != '\0');
+
+	size_t res;
+	for (res = 0; res < str.len; ++res) {
+		if (table[str.data[res]]) break;
+	}
+
+	return res;
+}
+
+size_t String_cspan(const String str, const char *accept) {
+	return StringView_cspan(str, accept);
+}
+
+
+// COMPARISON FUNCTIONS
+
+int StringView_compare(StringView s1, StringView s2) {
+	unsigned char c1, c2;
+	do {
+		c1 = (unsigned char) *s1.data++;
+		--s1.len;
+		c2 = (unsigned char) *s2.data++;
+		--s2.len;
+	} while (c1 == c2 && s1.len > 0 && s2.len > 0);
+
+	return c1 - c2;
 }
 
 int String_compare(String s1, String s2) {
@@ -235,31 +319,39 @@ int String_compare(String s1, String s2) {
 }
 
 int StringView_compare_nocase(StringView s1, StringView s2) {
-	ssize_t len_diff = s1.len - s2.len;
-	int result = strncasecmp(s1.data, s2.data, min(s1.len, s2.len));
+	unsigned char c1, c2;
+	do {
+		c1 = (unsigned char) *s1.data++ | 32;
+		--s1.len;
+		c2 = (unsigned char) *s2.data++ | 32;
+		--s2.len;
+	} while (c1 == c2 && s1.len > 0 && s2.len > 0);
 
-	if (len_diff > 0) {
-		s1.data += s2.len;
-		s1.len -= s2.len;
-		while (s1.len > 0) {
-			result += *s1.data++ | 32;
-			--s1.len;
-		}
-	} else if (len_diff < 0) {
-		s2.data += s1.len;
-		s2.len -= s1.len;
-		while (s2.len > 0) {
-			result -= *s2.data++ | 32;
-			--s2.len;
-		}
-	}
-
-	return result;
+	return c1 - c2;
 }
 
 int String_compare_nocase(String s1, String s2) {
 	return StringView_compare_nocase(s1, s2);
 }
+
+int String_matches(String str, const char *regex) {
+	regex_t preg;
+	int compres = regcomp(&preg, regex, REG_EXTENDED | REG_NOSUB);
+	if (compres) return compres;
+	int execres = regexec(&preg, String_to_cstr(str), 0, NULL, 0);
+	regfree(&preg);
+	return execres;
+}
+
+int StringView_matches(StringView str, const char *regex) {
+	String temp = String_copy(str);
+	int res = String_matches(temp, regex);
+	String_free(temp);
+	return res;
+}
+
+
+// SEARCH FUNCTIONS
 
 int StringView_contains_chr(const StringView str, const char c) {
 	return memchr(str.data, c, str.len) != NULL;
@@ -347,56 +439,4 @@ StringView StringView_search_str(StringView str, const StringView substr) {
 
 String String_search_str(String str, String substr) {
 	return String_copy(StringView_search_str(str, substr));
-}
-
-int StringView_startswith(StringView str, const StringView substr) {
-	if (substr.len > str.len) return 0;
-	str.len = substr.len;
-	return StringView_compare(str, substr);
-}
-
-int String_startswith(String str, const String substr) {
-	return StringView_startswith(str, substr);
-}
-
-int StringView_endswith(StringView str, const StringView substr) {
-	if (substr.len > str.len) return 0;
-	str.data += str.len - substr.len;
-	str.len = substr.len;
-	return StringView_compare(str, substr);
-}
-
-int String_endswith(String str, const String substr) {
-	return StringView_endswith(str, substr);
-}
-
-StringView StringView_strip_leading(StringView str) {
-	while (isblank(*str.data)) {
-		++str.data;
-		--str.len;
-	}
-
-	return str;
-}
-
-String String_strip_leading(String str) {
-	return String_copy(StringView_strip_leading(str));
-}
-
-StringView StringView_strip_trailing(StringView str) {
-	char *s = str.data + str.len - 1;
-	while (isblank(*s--)) --str.len;
-	return str;
-}
-
-String String_strip_trailing(String str) {
-	return String_copy(StringView_strip_trailing(str));
-}
-
-StringView StringView_strip(StringView str) {
-	return StringView_strip_trailing(StringView_strip_leading(str));
-}
-
-String String_strip(String str) {
-	return String_copy(StringView_strip(str));
 }
