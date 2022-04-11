@@ -1,6 +1,8 @@
 #ifndef ENHANCED_CSTRINGS_H
 #define ENHANCED_CSTRINGS_H
 
+#if __STDC_VERSION__ >= 201112L
+
 #define String(str) _Generic((str), \
 		char*: String_from_cstr, \
 		StringView: String_copy \
@@ -10,6 +12,8 @@
 		char*: StringView_from_cstr, \
 		String: \
 	)(str)
+
+#endif
 
 typedef struct String {
 	char *data;
