@@ -302,7 +302,6 @@ size_t String_cspan(const String str, const char *accept) {
 StringView StringView_tokenize(StringView *str, const char *delim) {
 	String ret = *str;
 	ret.len = StringView_cspan(*str, delim);
-	printf("%d\n", ret.len);
 	str->data += ret.len + 1;
 	str->len -= ret.len + 1;
 	return ret;
