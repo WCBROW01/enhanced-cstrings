@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -261,10 +262,10 @@ int String_endswith(String str, const String substr) {
 }
 
 size_t StringView_span(const StringView str, const char *accept) {
-	unsigned char table[256] = {0};
+	bool table[256] = {false};
 	unsigned char tmp;
 	do {
-		table[tmp = *accept++] = 1;
+		table[tmp = *accept++] = true;
 	} while (tmp != '\0');
 
 	size_t res;
@@ -280,10 +281,10 @@ size_t String_span(const String str, const char *accept) {
 }
 
 size_t StringView_cspan(const StringView str, const char *reject) {
-	unsigned char table[256] = {0};
+	bool table[256] = {false};
 	unsigned char tmp;
 	do {
-		table[tmp = *reject++] = 1;
+		table[tmp = *reject++] = true;
 	} while (tmp != '\0');
 
 	size_t res;
