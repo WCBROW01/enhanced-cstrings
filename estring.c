@@ -52,8 +52,7 @@ String String_copy(String str) {
 // NULL-TERMINATED STRING FUNCTIONS
 
 char *String_to_cstr(String str) {
-	if (str.data == NULL || str.data[str.len] != '\0') return NULL;
-	else return str.data;
+	return str.data == NULL || str.data[str.len] != '\0' ? NULL : str.data;
 }
 
 StringView StringView_from_cstr(char *str) {
@@ -379,8 +378,7 @@ int String_contains_str(const String str, const String substr) {
 
 int StringView_indexof_chr(const StringView str, const char c) {
 	char *result = memchr(str.data, c, str.len);
-	if (result == NULL) return -1;
-	else return result - str.data;
+	return result == NULL ? -1 : result - str.data;
 }
 
 int String_indexof_chr(const String str, const char c) {
@@ -389,8 +387,7 @@ int String_indexof_chr(const String str, const char c) {
 
 int StringView_indexof_rchr(const StringView str, const char c) {
 	char *result = memrchr(str.data, c, str.len);
-	if (result == NULL) return -1;
-	else return result - str.data;
+	return result == NULL ? -1 : result - str.data;
 }
 
 int String_indexof_rchr(const String str, const char c) {
@@ -399,8 +396,7 @@ int String_indexof_rchr(const String str, const char c) {
 
 int StringView_indexof_str(const StringView str, const StringView substr) {
 	char *result = memmem(str.data, str.len, substr.data, substr.len);
-	if (result == NULL) return -1;
-	else return result - str.data;
+	return result == NULL ? -1 : result - str.data;
 }
 
 int String_indexof_str(const String str, const String substr) {
@@ -410,8 +406,7 @@ int String_indexof_str(const String str, const String substr) {
 StringView StringView_search_chr(StringView str, const char c) {
 	char *result = memchr(str.data, c, str.len);
 
-	if (result == NULL) return (StringView) {0};
-	else return (StringView) {
+	return result == NULL ? (StringView) {0} : (StringView) {
 		.data = result,
 		.len = str.len - (result - str.data)
 	};
@@ -424,8 +419,7 @@ String String_search_chr(String str, const char c) {
 StringView StringView_search_rchr(StringView str, const char c) {
 	char *result = memrchr(str.data, c, str.len);
 
-	if (result == NULL) return (StringView) {0};
-	else return (StringView) {
+	return result == NULL ? (StringView) {0} : (StringView) {
 		.data = result,
 		.len = str.len - (result - str.data)
 	};
@@ -438,8 +432,7 @@ String String_search_rchr(String str, const char c) {
 StringView StringView_search_str(StringView str, const StringView substr) {
 	char *result = memmem(str.data, str.len, substr.data, substr.len);
 
-	if (result == NULL) return (StringView) {0};
-	else return (StringView) {
+	return result == NULL ? (StringView) {0} : (StringView) {
 		.data = result,
 		.len = str.len - (result - str.data)
 	};
