@@ -270,7 +270,7 @@ size_t StringView_span(const StringView str, const char *accept) {
 
 	size_t res;
 	for (res = 0; res < str.len; ++res) {
-		if (!table[str.data[res]]) break;
+		if (!table[(unsigned char) str.data[res]]) break;
 	}
 
 	return res;
@@ -289,7 +289,7 @@ size_t StringView_cspan(const StringView str, const char *reject) {
 
 	size_t res;
 	for (res = 0; res < str.len; ++res) {
-		if (table[str.data[res]]) break;
+		if (table[(unsigned char) str.data[res]]) break;
 	}
 
 	return res;
