@@ -177,13 +177,13 @@ String String_repeat(String str, size_t count) {
 
 String String_toupper(String str) {
 	String ret = String_copy(str);
-	for (size_t i = 0; i < ret.len; ++i) ret.data[i] = toupper(ret.data[i]);
+	for (size_t i = 0; i < ret.len; ++i) ret.data[i] = toupper((unsigned char) ret.data[i]);
 	return ret;
 }
 
 String String_tolower(String str) {
 	String ret = String_copy(str);
-	for (size_t i = 0; i < ret.len; ++i) ret.data[i] = tolower(ret.data[i]);
+	for (size_t i = 0; i < ret.len; ++i) ret.data[i] = tolower((unsigned char) ret.data[i]);
 	return ret;
 }
 
@@ -328,9 +328,9 @@ int String_compare(String s1, String s2) {
 int StringView_compare_nocase(StringView s1, StringView s2) {
 	unsigned char c1, c2;
 	do {
-		c1 = (unsigned char) *s1.data++ | 32;
+		c1 = tolower((unsigned char) *s1.data++);
 		--s1.len;
-		c2 = (unsigned char) *s2.data++ | 32;
+		c2 = tolower((unsigned char) *s2.data++);
 		--s2.len;
 	} while (c1 == c2 && s1.len > 0 && s2.len > 0);
 
