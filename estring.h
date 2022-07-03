@@ -159,6 +159,16 @@ int String_compare(String s1, String s2);
 int StringView_compare_nocase(StringView s1, StringView s2);
 int String_compare_nocase(String s1, String s2);
 
+/* Tests equality of strings. Possibly faster than the compare function
+ * if you don't need that value and your strings may be differently sized.
+ * It also checks the end of the strings before doing a full comparison. */
+int StringView_equals(StringView s1, StringView s2);
+int String_equals(String s1, String s2);
+
+// Same as String_equals, but ignoring case.
+int StringView_equals_nocase(StringView s1, StringView s2);
+int String_equals_nocase(String s1, String s2);
+
 /* Checks whether a string matches a regular expression.
  * See man regex(3) for possible return values. */
 int String_matches(String str, const char *regex);

@@ -341,6 +341,30 @@ int String_compare_nocase(String s1, String s2) {
 	return StringView_compare_nocase(s1, s2);
 }
 
+int StringView_equals(StringView s1, StringView s2) {
+	if (s1.len != s2.len) return 0;
+	else if (s1.data[0] != s2.data[0]) return 0;
+	else if (s1.data[s1.len - 1] != s2.data[s1.len - 1]) return 0;
+	else if (s1.data[s1.len - 2] != s2.data[s1.len - 2]) return 0;
+	else return StringView_compare(s1, s2) != 0;
+}
+
+int String_equals(String s1, String s2) {
+	return StringView_equals(s1, s2);
+}
+
+int StringView_equals_nocase(StringView s1, StringView s2) {
+	if (s1.len != s2.len) return 0;
+	else if (tolower((unsigned char) s1.data[0]) != tolower((unsigned char) s2.data[0])) return 0;
+	else if (tolower((unsigned char) s1.data[s1.len - 1]) != tolower((unsigned char) s2.data[s1.len - 1])) return 0;
+	else if (tolower((unsigned char) s1.data[s1.len - 2]) != tolower((unsigned char) s2.data[s1.len - 2])) return 0;
+	else return StringView_compare_nocase(s1, s2) != 0;
+}
+
+int String_equals_nocase(String s1, String s2) {
+	return StringView_equals_nocase(s1, s2);
+}
+
 int String_matches(String str, const char *regex) {
 	regex_t preg;
 	int compres = regcomp(&preg, regex, REG_EXTENDED | REG_NOSUB);
