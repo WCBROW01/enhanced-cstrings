@@ -194,7 +194,7 @@ String String_replace(String str, const char old, const char new) {
 }
 
 StringView StringView_strip_leading(StringView str) {
-	while (isblank(*str.data)) {
+	while (isblank((unsigned char) *str.data)) {
 		++str.data;
 		--str.len;
 	}
@@ -208,7 +208,7 @@ String String_strip_leading(String str) {
 
 StringView StringView_strip_trailing(StringView str) {
 	char *s = str.data + str.len - 1;
-	while (isblank(*s--)) --str.len;
+	while (isblank((unsigned char) *s--)) --str.len;
 	return str;
 }
 
