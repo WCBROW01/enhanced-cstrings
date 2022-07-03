@@ -153,7 +153,7 @@ long double StringView_to_ldouble(StringView str) {
 
 String String_concat(String s1, String s2) {
 	String ret = String_alloc(s1.len + s2.len);
-	char *tmp = mempcpy(ret.data, s1.data, s1.len);
+	char *tmp = memcpy(ret.data, s1.data, s1.len) + s1.len;
 	memcpy(tmp, s2.data, s2.len);
 
 	return ret;
@@ -165,8 +165,7 @@ String String_repeat(String str, size_t count) {
 	char *new_string = ret.data;
 
 	for (size_t i = 0; i < count; ++i) {
-		new_string = mempcpy(new_string, str.data, str.len);
-		memcpy(new_string, str.data, str.len);
+		new_string = memcpy(new_string, str.data, str.len) + str.len;
 	}
 
 	return ret;
