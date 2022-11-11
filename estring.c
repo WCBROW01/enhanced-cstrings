@@ -308,39 +308,27 @@ StringView StringView_tokenize(StringView *str, const char *delim) {
 
 // COMPARISON FUNCTIONS
 
-int StringView_compare(StringView s1, StringView s2) {
-	unsigned char c1, c2;
-	do {
-		c1 = (unsigned char) *s1.data++;
-		--s1.len;
-		c2 = (unsigned char) *s2.data++;
-		--s2.len;
-	} while (c1 == c2 && s1.len > 0 && s2.len > 0);
-
-	return c1 - c2;
+int StringView_compare(const StringView s1, const StringView s2) {
+	if (s1.len > s2.len) return s1.data[s2.len];
+	else if (s1.len < s2.len) return -s2.data[s1.len];
+	else return strncmp(s1.data, s2.data, s1.len);
 }
 
 int String_compare(String s1, String s2) {
 	return StringView_compare(s1, s2);
 }
 
-int StringView_compare_nocase(StringView s1, StringView s2) {
-	unsigned char c1, c2;
-	do {
-		c1 = tolower((unsigned char) *s1.data++);
-		--s1.len;
-		c2 = tolower((unsigned char) *s2.data++);
-		--s2.len;
-	} while (c1 == c2 && s1.len > 0 && s2.len > 0);
-
-	return c1 - c2;
+int StringView_compare_nocase(const StringView s1, const StringView s2) {
+	if (s1.len > s2.len) return s1.data[s2.len];
+	else if (s1.len < s2.len) return -s2.data[s1.len];
+	else return strncasecmp(s1.data, s2.data, s1.len);
 }
 
-int String_compare_nocase(String s1, String s2) {
+int String_compare_nocase(const String s1, const String s2) {
 	return StringView_compare_nocase(s1, s2);
 }
 
-int StringView_equals(StringView s1, StringView s2) {
+int StringView_equals(const StringView s1, const StringView s2) {
 	if (s1.len != s2.len) return 0;
 	else if (s1.data[0] != s2.data[0]) return 0;
 	else if (s1.data[s1.len - 1] != s2.data[s1.len - 1]) return 0;
@@ -348,11 +336,11 @@ int StringView_equals(StringView s1, StringView s2) {
 	else return StringView_compare(s1, s2) == 0;
 }
 
-int String_equals(String s1, String s2) {
+int String_equals(const String s1, const String s2) {
 	return StringView_equals(s1, s2);
 }
 
-int StringView_equals_nocase(StringView s1, StringView s2) {
+int StringView_equals_nocase(const StringView s1, const StringView s2) {
 	if (s1.len != s2.len) return 0;
 	else if (tolower((unsigned char) s1.data[0]) != tolower((unsigned char) s2.data[0])) return 0;
 	else if (tolower((unsigned char) s1.data[s1.len - 1]) != tolower((unsigned char) s2.data[s1.len - 1])) return 0;
@@ -360,7 +348,7 @@ int StringView_equals_nocase(StringView s1, StringView s2) {
 	else return StringView_compare_nocase(s1, s2) == 0;
 }
 
-int String_equals_nocase(String s1, String s2) {
+int String_equals_nocase(const String s1, const String s2) {
 	return StringView_equals_nocase(s1, s2);
 }
 
